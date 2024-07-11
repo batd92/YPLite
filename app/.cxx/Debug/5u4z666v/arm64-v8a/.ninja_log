@@ -1,0 +1,17 @@
+# ninja log v5
+5	2148	1720707604710789810	CMakeFiles/Native.dir/predictor_input.cpp.o	ee44631a8e4ad94a
+5	2150	1720707604705487640	CMakeFiles/Native.dir/predictor_output.cpp.o	eb8c0bc61cf4bc94
+5	2509	1720707605074634340	CMakeFiles/Native.dir/ppredictor.cpp.o	a2f37c195e0a79ed
+4	3522	1720707606088185779	CMakeFiles/Native.dir/ocr_db_post_process.cpp.o	48912d4de82c10d7
+3	3657	1720707606221156848	CMakeFiles/Native.dir/ocr_clipper.cpp.o	1be4310835b46e41
+6	3998	1720707606563315791	CMakeFiles/Native.dir/preprocess.cpp.o	9ad637429b39c525
+4	4059	1720707606621838404	CMakeFiles/Native.dir/ocr_cls_process.cpp.o	eac96019f49894c7
+4	4118	1720707606683829465	CMakeFiles/Native.dir/ocr_crnn_process.cpp.o	7d6792c54a96c16d
+2	4186	1720707606751858476	CMakeFiles/Native.dir/native.cpp.o	b93f2289a434e262
+5	4220	1720707606787244315	CMakeFiles/Native.dir/ocr_ppredictor.cpp.o	f260c340b444b3c5
+4220	4833	1720707607352917830	/Volumes/Workplaces/AI/Projects/YPLite/app/build/intermediates/cxx/Debug/5u4z666v/obj/arm64-v8a/libNative.so	5228fb1b7753af45
+1	2021	1720708648767327542	CMakeFiles/Native.dir/native.cpp.o	b93f2289a434e262
+2021	2644	1720708649347901647	/Volumes/Workplaces/AI/Projects/YPLite/app/build/intermediates/cxx/Debug/5u4z666v/obj/arm64-v8a/libNative.so	5228fb1b7753af45
+1	2004	1720709159239482088	CMakeFiles/Native.dir/native.cpp.o	b93f2289a434e262
+2004	2636	1720709159829860579	/Volumes/Workplaces/AI/Projects/YPLite/app/build/intermediates/cxx/Debug/5u4z666v/obj/arm64-v8a/libNative.so	5228fb1b7753af45
+1	825	1720712378786292876	/Volumes/Workplaces/AI/Projects/YPLite/app/build/intermediates/cxx/Debug/5u4z666v/obj/arm64-v8a/libNative.so	5228fb1b7753af45

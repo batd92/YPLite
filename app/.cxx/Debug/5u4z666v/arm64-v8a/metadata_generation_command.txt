@@ -1,0 +1,21 @@
+                        -H/Volumes/Workplaces/AI/Projects/YPLite/app/src/main/cpp
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=21
+-DANDROID_ABI=arm64-v8a
+-DCMAKE_ANDROID_ARCH_ABI=arm64-v8a
+-DANDROID_NDK=/Users/mac/Library/Android/sdk/ndk/21.1.6352462
+-DCMAKE_ANDROID_NDK=/Users/mac/Library/Android/sdk/ndk/21.1.6352462
+-DCMAKE_TOOLCHAIN_FILE=/Users/mac/Library/Android/sdk/ndk/21.1.6352462/build/cmake/android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=/Users/mac/Library/Android/sdk/cmake/3.22.1/bin/ninja
+-DCMAKE_CXX_FLAGS=-std=c++11 -frtti -fexceptions -Wno-format
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Volumes/Workplaces/AI/Projects/YPLite/app/build/intermediates/cxx/Debug/5u4z666v/obj/arm64-v8a
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Volumes/Workplaces/AI/Projects/YPLite/app/build/intermediates/cxx/Debug/5u4z666v/obj/arm64-v8a
+-DCMAKE_BUILD_TYPE=Debug
+-B/Volumes/Workplaces/AI/Projects/YPLite/app/.cxx/Debug/5u4z666v/arm64-v8a
+-GNinja
+-DANDROID_PLATFORM=latest
+-DANDROID_STL=c++_shared
+-DANDROID_ARM_NEON=TRUE
+                        Build command args: []
+                        Version: 2
