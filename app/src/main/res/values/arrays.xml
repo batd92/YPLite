@@ -57,11 +57,11 @@
         <item>RGB</item>
     </string-array>
     <string-array name="run_Model">
-        <item>Detection + Classification + Recognition</item>
-        <item>Detection + Identification</item>
-        <item>Classification + Identification</item>
-        <item>Detection</item>
-        <item>Identification</item>
-        <item>Classification</item>
+        <item>D-C-R</item>
+        <item>D-R</item>
+        <item>C-R</item>
+        <item>D</item>
+        <item>R</item>
+        <item>C</item>
     </string-array>
 </resources>

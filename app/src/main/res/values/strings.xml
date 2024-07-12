@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PaddleLite</string>
+    <string name="app_name">Scan v.1.0</string>
     <string name="CHOOSE_PRE_INSTALLED_MODEL_KEY">CHOOSE_PRE_INSTALLED_MODEL_KEY</string>
     <string name="ENABLE_CUSTOM_SETTINGS_KEY">ENABLE_CUSTOM_SETTINGS_KEY</string>
     <string name="MODEL_PATH_KEY">MODEL_PATH_KEY</string>

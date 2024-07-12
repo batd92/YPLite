@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto"
                                              xmlns:tools="http://schemas.android.com/tools"
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent"
@@ -11,14 +10,15 @@
             android:layout_height="match_parent">
 
         <LinearLayout
-                android:id="@+id/v_input_info"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:orientation="vertical">
+            android:id="@+id/v_input_info"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:id="@+id/btn_layout"
+                style="?android:attr/buttonBarStyle"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -26,37 +26,56 @@
 
                 <Button
                     android:id="@+id/btn_run_model"
+                    style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@color/purple_700"
                     android:onClick="btn_run_model_click"
-                    android:text="Run model" />
+                    android:text="Run"
+                    android:textColor="#FFEB3B"
+                    tools:ignore="HardcodedText,UsingOnClickInXml" />
 
                 <Button
                     android:id="@+id/btn_take_photo"
+                    style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@color/purple_700"
+                    android:backgroundTint="@color/teal_200"
+                    android:drawableRight="@color/colorPrimary"
                     android:onClick="btn_take_photo_click"
-                    android:text="Recognition" />
+                    android:text="Take photo"
+                    android:textColor="#FFEB3B"
+                    tools:ignore="HardcodedText,UsingOnClickInXml" />
 
                 <Button
                     android:id="@+id/btn_choice_img"
+                    style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@color/purple_700"
                     android:onClick="btn_choice_img_click"
-                    android:text="Select img" />
+                    android:text="Select img"
+                    android:textColor="#FFEB3B"
+                    tools:ignore="HardcodedText,UsingOnClickInXml" />
 
                 <Button
                     android:id="@+id/btn_reset_img"
+                    style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@color/purple_700"
                     android:onClick="btn_reset_img_click"
-                    android:text="Clear" />
+                    android:text="Clear"
+                    android:textColor="#FFEB3B"
+                    tools:ignore="HardcodedText,UsingOnClickInXml" />
 
             </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/run_mode_layout"
                 android:layout_width="fill_parent"
@@ -66,53 +85,57 @@
                 <CheckBox
                     android:id="@+id/cb_opencl"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="开启OPENCL"
+                    android:layout_weight="1"
                     android:onClick="cb_opencl_click"
-                    android:visibility="gone"/>
+                    android:text="开启OPENCL"
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText,UsingOnClickInXml" />
 
                 <TextView
-                    android:layout_width="76dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="262dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="0.5"
-                    android:text="Operation Mode:" />
+                    android:text="Operation Mode:"
+                    tools:ignore="HardcodedText" />
 
                 <Spinner
                     android:id="@+id/sp_run_mode"
-                    android:layout_width="0dp"
-                    android:layout_height="54dp"
+                    android:layout_width="82dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1.5"
                     android:entries="@array/run_Model" />
 
             </LinearLayout>
 
             <TextView
-                    android:id="@+id/tv_input_setting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="vertical"
-                    android:layout_marginLeft="12dp"
-                    android:layout_marginRight="12dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:lineSpacingExtra="4dp"
-                    android:singleLine="false"
-                    android:maxLines="6"
-                    android:text=""/>
+                android:id="@+id/tv_input_setting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="12dp"
+                android:layout_marginBottom="5dp"
+                android:lineSpacingExtra="4dp"
+                android:maxLines="6"
+                android:scrollbars="vertical"
+                android:singleLine="false"
+                android:text="" />
+
             <TextView
                 android:id="@+id/tv_model_img_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="vertical"
                 android:layout_marginLeft="12dp"
-                android:layout_marginRight="12dp"
                 android:layout_marginTop="-5dp"
+                android:layout_marginRight="12dp"
                 android:layout_marginBottom="5dp"
                 android:lineSpacingExtra="4dp"
-                android:singleLine="false"
                 android:maxLines="6"
-                android:text="STATUS: ok"/>
+                android:scrollbars="vertical"
+                android:singleLine="false"
+                android:text="STATUS: ok"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
 
@@ -123,24 +146,24 @@
                 android:layout_below="@+id/v_input_info">
 
             <ImageView
-                    android:id="@+id/iv_input_image"
-                    android:layout_width="400dp"
-                    android:layout_height="400dp"
-                    android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginLeft="12dp"
-                    android:layout_marginRight="12dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"/>
+                android:id="@+id/iv_input_image"
+                android:layout_width="400dp"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="12dp"
+                android:layout_marginBottom="5dp"
+                android:adjustViewBounds="true"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter" />
         </RelativeLayout>
 
 
         <RelativeLayout
             android:id="@+id/v_output_info"
             android:layout_width="match_parent"
-            android:layout_height="95dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="2dp"
