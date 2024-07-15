@@ -1,1 +1,0 @@
-/Volumes/Workplaces/AI/Projects/YPLite/app/src/main/cpp/CMakeLists.txt

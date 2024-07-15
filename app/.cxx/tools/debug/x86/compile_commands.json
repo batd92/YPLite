@@ -1,7 +1,0 @@
-[
-{
-  "directory": "D:/Repository/AI/ComputerVision/Projects/YPLite/app/.cxx/Debug/y6j5u3h3/x86",
-  "command": "C:\\Users\\ba.tran\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android21 --sysroot=C:/Users/ba.tran/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dai_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\ai.dir\\native-lib.cpp.o -c D:\\Repository\\AI\\ComputerVision\\Projects\\YPLite\\app\\src\\main\\cpp\\native-lib.cpp",
-  "file": "D:\\Repository\\AI\\ComputerVision\\Projects\\YPLite\\app\\src\\main\\cpp\\native-lib.cpp"
-}
-]

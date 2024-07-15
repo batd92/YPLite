@@ -16,4 +16,7 @@
     <string name="CPU_POWER_MODE_DEFAULT">LITE_POWER_HIGH</string>
     <string name="DET_LONG_SIZE_DEFAULT">960</string>
     <string name="SCORE_THRESHOLD_DEFAULT">0.1</string>
+
+    <string name="MODEL_YOLO_PATH">models/yolov8/best_meter_float32.tflite</string>
+    <string name="LABEL_YOLO_PATH">models/yolov8/labels.txt</string>
 </resources>

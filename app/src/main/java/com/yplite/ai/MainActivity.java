@@ -10,6 +10,8 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import androidx.exifinterface.media.ExifInterface;
 import android.content.res.AssetManager;
@@ -43,7 +45,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.io.FileOutputStream;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -73,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     protected CheckBox cbOpencl;
     protected Spinner spRunMode;
 
-    // Model settings of ocr
+    // Model settings of PaddleOCR
     protected String modelPath = "";
     protected String labelPath = "";
     protected String imagePath = "";
@@ -84,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private String currentPhotoPath;
 
     protected Predictor predictor = new Predictor();
+    protected Detector detector;
 
     private Bitmap cur_predict_image = null;
 
@@ -92,14 +98,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        clearPreferences();
+        initLayoutOnScreen();
+        initHandlers();
+        initWorkerThread();
+        initYoLov8();
+    }
 
-        // Clear all setting items to avoid app crashing due to the incorrect settings
+    private void initYoLov8() {
+        detector = new Detector(this, getString(R.string.MODEL_YOLO_PATH), getString(R.string.LABEL_YOLO_PATH));
+    }
+
+    private void clearPreferences() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
+    }
 
-        // Setup the UI components
+    // Setup the UI components
+    private void initLayoutOnScreen() {
         tvInputSetting = findViewById(R.id.tv_input_setting);
         cbOpencl = findViewById(R.id.cb_opencl);
         tvStatus = findViewById(R.id.tv_model_img_status);
@@ -109,70 +127,81 @@ public class MainActivity extends AppCompatActivity {
         spRunMode = findViewById(R.id.sp_run_mode);
         tvInputSetting.setMovementMethod(ScrollingMovementMethod.getInstance());
         tvOutputResult.setMovementMethod(ScrollingMovementMethod.getInstance());
+    }
 
-        // Prepare the worker thread for mode loading and inference
+    @SuppressLint("HandlerLeak")
+    private void initHandlers() {
         receiver = new Handler() {
             @Override
             public void handleMessage(@NonNull Message msg) {
-                switch (msg.what) {
-                    case RESPONSE_LOAD_MODEL_SUCCESSFUL:
-                        if (pbLoadModel != null && pbLoadModel.isShowing()) {
-                            pbLoadModel.dismiss();
-                        }
-                        onLoadModelSuccess();
-                        break;
-                    case RESPONSE_LOAD_MODEL_FAILED:
-                        if (pbLoadModel != null && pbLoadModel.isShowing()) {
-                            pbLoadModel.dismiss();
-                        }
-                        Toast.makeText(MainActivity.this, "Load model failed!", Toast.LENGTH_SHORT).show();
-                        onLoadModelFailed();
-                        break;
-                    case RESPONSE_RUN_MODEL_SUCCESSFUL:
-                        if (pbRunModel != null && pbRunModel.isShowing()) {
-                            pbRunModel.dismiss();
-                        }
-                        onRunModelSuccess();
-                        break;
-                    case RESPONSE_RUN_MODEL_FAILED:
-                        if (pbRunModel != null && pbRunModel.isShowing()) {
-                            pbRunModel.dismiss();
-                        }
-                        Toast.makeText(MainActivity.this, "Run model failed!", Toast.LENGTH_SHORT).show();
-                        onRunModelFailed();
-                        break;
-                    default:
-                        break;
-                }
+                handleReceiverMessage(msg);
             }
         };
+    }
 
+    private void initWorkerThread() {
         worker = new HandlerThread("Predictor Worker");
         worker.start();
         sender = new Handler(worker.getLooper()) {
+            @Override
             public void handleMessage(@NonNull Message msg) {
-                switch (msg.what) {
-                    case REQUEST_LOAD_MODEL:
-                        // Load model and reload test image
-                        if (onLoadModel()) {
-                            receiver.sendEmptyMessage(RESPONSE_LOAD_MODEL_SUCCESSFUL);
-                        } else {
-                            receiver.sendEmptyMessage(RESPONSE_LOAD_MODEL_FAILED);
-                        }
-                        break;
-                    case REQUEST_RUN_MODEL:
-                        // Run model if model is loaded
-                        if (onRunModel()) {
-                            receiver.sendEmptyMessage(RESPONSE_RUN_MODEL_SUCCESSFUL);
-                        } else {
-                            receiver.sendEmptyMessage(RESPONSE_RUN_MODEL_FAILED);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                handleSenderMessage(msg);
             }
         };
+    }
+
+    /**
+     * WorkerThread Receiver Message
+     * @param msg
+     */
+    private void handleReceiverMessage(@NonNull Message msg) {
+        switch (msg.what) {
+            case RESPONSE_LOAD_MODEL_SUCCESSFUL:
+                dismissProgressDialog(pbLoadModel);
+                onLoadModelSuccess();
+                break;
+            case RESPONSE_LOAD_MODEL_FAILED:
+                dismissProgressDialog(pbLoadModel);
+                Toast.makeText(MainActivity.this, "Load model failed!", Toast.LENGTH_SHORT).show();
+                onLoadModelFailed();
+                break;
+            case RESPONSE_RUN_MODEL_SUCCESSFUL:
+                dismissProgressDialog(pbRunModel);
+                onRunModelSuccess();
+                break;
+            case RESPONSE_RUN_MODEL_FAILED:
+                dismissProgressDialog(pbRunModel);
+                Toast.makeText(MainActivity.this, "Run model failed!", Toast.LENGTH_SHORT).show();
+                onRunModelFailed();
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * WorkerThread Receiver Request
+     * @param msg
+     */
+    private void handleSenderMessage(@NonNull Message msg) {
+        int responseMessage;
+        switch (msg.what) {
+            case REQUEST_LOAD_MODEL:
+                responseMessage = onLoadModel() ? RESPONSE_LOAD_MODEL_SUCCESSFUL : RESPONSE_LOAD_MODEL_FAILED;
+                break;
+            case REQUEST_RUN_MODEL:
+                responseMessage = onRunModel() ? RESPONSE_RUN_MODEL_SUCCESSFUL : RESPONSE_RUN_MODEL_FAILED;
+                break;
+            default:
+                return;
+        }
+        receiver.sendEmptyMessage(responseMessage);
+    }
+
+    private void dismissProgressDialog(ProgressDialog progressDialog) {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
     }
 
     @Override
@@ -180,49 +209,86 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean settingsChanged = false;
-        boolean model_settingsChanged = false;
-        String model_path = sharedPreferences.getString(getString(R.string.MODEL_PATH_KEY),
-                getString(R.string.MODEL_PATH_DEFAULT));
-        String label_path = sharedPreferences.getString(getString(R.string.LABEL_PATH_KEY),
-                getString(R.string.LABEL_PATH_DEFAULT));
-        String image_path = sharedPreferences.getString(getString(R.string.IMAGE_PATH_KEY),
-                getString(R.string.IMAGE_PATH_DEFAULT));
-        model_settingsChanged |= !model_path.equalsIgnoreCase(modelPath);
-        settingsChanged |= !label_path.equalsIgnoreCase(labelPath);
-        settingsChanged |= !image_path.equalsIgnoreCase(imagePath);
-        int cpu_thread_num = Integer.parseInt(sharedPreferences.getString(getString(R.string.CPU_THREAD_NUM_KEY),
-                getString(R.string.CPU_THREAD_NUM_DEFAULT)));
-        model_settingsChanged |= cpu_thread_num != cpuThreadNum;
-        String cpu_power_mode =
-                sharedPreferences.getString(getString(R.string.CPU_POWER_MODE_KEY),
-                        getString(R.string.CPU_POWER_MODE_DEFAULT));
-        model_settingsChanged |= !cpu_power_mode.equalsIgnoreCase(cpuPowerMode);
 
-        int det_long_size = Integer.parseInt(sharedPreferences.getString(getString(R.string.DET_LONG_SIZE_KEY),
-                getString(R.string.DET_LONG_SIZE_DEFAULT)));
-        settingsChanged |= det_long_size != detLongSize;
-        float score_threshold =
-                Float.parseFloat(sharedPreferences.getString(getString(R.string.SCORE_THRESHOLD_KEY),
-                        getString(R.string.SCORE_THRESHOLD_DEFAULT)));
-        settingsChanged |= scoreThreshold != score_threshold;
+        // Check if settings have changed
+        boolean settingsChanged = checkSettingsChanged(sharedPreferences);
+        boolean modelSettingsChanged = checkModelSettingsChanged(sharedPreferences);
+
+        // Update settings if they have changed
         if (settingsChanged) {
-            labelPath = label_path;
-            imagePath = image_path;
-            detLongSize = det_long_size;
-            scoreThreshold = score_threshold;
+            updateSettings(sharedPreferences);
             set_img();
         }
-        if (model_settingsChanged) {
-            modelPath = model_path;
-            cpuThreadNum = cpu_thread_num;
-            cpuPowerMode = cpu_power_mode;
-            // Update UI
-            tvInputSetting.setText("Model: " + modelPath.substring(modelPath.lastIndexOf("/") + 1) + "\nOPENCL: " + cbOpencl.isChecked() + "\nCPU Thread Num: " + cpuThreadNum + "\nCPU Power Mode: " + cpuPowerMode);
-            tvInputSetting.scrollTo(0, 0);
-            // Reload model if configure has been changed
+
+        // Reload model if model settings have changed
+        if (modelSettingsChanged) {
+            updateModelSettings(sharedPreferences);
+            updateUI();
             loadModel();
         }
+    }
+
+    // Check if general settings have changed
+    private boolean checkSettingsChanged(SharedPreferences sharedPreferences) {
+        boolean settingsChanged = false;
+
+        String label_path = sharedPreferences.getString(getString(R.string.LABEL_PATH_KEY), getString(R.string.LABEL_PATH_DEFAULT));
+        String image_path = sharedPreferences.getString(getString(R.string.IMAGE_PATH_KEY), getString(R.string.IMAGE_PATH_DEFAULT));
+        int det_long_size = Integer.parseInt(sharedPreferences.getString(getString(R.string.DET_LONG_SIZE_KEY), getString(R.string.DET_LONG_SIZE_DEFAULT)));
+        float score_threshold = Float.parseFloat(sharedPreferences.getString(getString(R.string.SCORE_THRESHOLD_KEY), getString(R.string.SCORE_THRESHOLD_DEFAULT)));
+
+        settingsChanged |= !label_path.equalsIgnoreCase(labelPath);
+        settingsChanged |= !image_path.equalsIgnoreCase(imagePath);
+        settingsChanged |= det_long_size != detLongSize;
+        settingsChanged |= scoreThreshold != score_threshold;
+
+        return settingsChanged;
+    }
+
+    /**
+     * PaddleOCR: Check if model settings have changed
+     * @param sharedPreferences
+     * @return
+     */
+    private boolean checkModelSettingsChanged(SharedPreferences sharedPreferences) {
+        boolean modelSettingsChanged = false;
+
+        String model_path = sharedPreferences.getString(getString(R.string.MODEL_PATH_KEY), getString(R.string.MODEL_PATH_DEFAULT));
+        int cpu_thread_num = Integer.parseInt(sharedPreferences.getString(getString(R.string.CPU_THREAD_NUM_KEY), getString(R.string.CPU_THREAD_NUM_DEFAULT)));
+        String cpu_power_mode = sharedPreferences.getString(getString(R.string.CPU_POWER_MODE_KEY), getString(R.string.CPU_POWER_MODE_DEFAULT));
+
+        modelSettingsChanged |= !model_path.equalsIgnoreCase(modelPath);
+        modelSettingsChanged |= cpu_thread_num != cpuThreadNum;
+        modelSettingsChanged |= !cpu_power_mode.equalsIgnoreCase(cpuPowerMode);
+
+        return modelSettingsChanged;
+    }
+
+    /**
+     * PaddleOCR: Update general settings
+     * @param sharedPreferences
+     * @return
+     */
+
+    private void updateSettings(SharedPreferences sharedPreferences) {
+        labelPath = sharedPreferences.getString(getString(R.string.LABEL_PATH_KEY), getString(R.string.LABEL_PATH_DEFAULT));
+        imagePath = sharedPreferences.getString(getString(R.string.IMAGE_PATH_KEY), getString(R.string.IMAGE_PATH_DEFAULT));
+        detLongSize = Integer.parseInt(sharedPreferences.getString(getString(R.string.DET_LONG_SIZE_KEY), getString(R.string.DET_LONG_SIZE_DEFAULT)));
+        scoreThreshold = Float.parseFloat(sharedPreferences.getString(getString(R.string.SCORE_THRESHOLD_KEY), getString(R.string.SCORE_THRESHOLD_DEFAULT)));
+    }
+
+    // Update model settings
+    private void updateModelSettings(SharedPreferences sharedPreferences) {
+        modelPath = sharedPreferences.getString(getString(R.string.MODEL_PATH_KEY), getString(R.string.MODEL_PATH_DEFAULT));
+        cpuThreadNum = Integer.parseInt(sharedPreferences.getString(getString(R.string.CPU_THREAD_NUM_KEY), getString(R.string.CPU_THREAD_NUM_DEFAULT)));
+        cpuPowerMode = sharedPreferences.getString(getString(R.string.CPU_POWER_MODE_KEY), getString(R.string.CPU_POWER_MODE_DEFAULT));
+    }
+
+    // Update the UI to reflect the new settings
+    @SuppressLint("SetTextI18n")
+    private void updateUI() {
+        tvInputSetting.setText("Model: " + modelPath.substring(modelPath.lastIndexOf("/") + 1) + "\nOPENCL: " + cbOpencl.isChecked() + "\nCPU Thread Num: " + cpuThreadNum + "\nCPU Power Mode: " + cpuPowerMode);
+        tvInputSetting.scrollTo(0, 0);
     }
 
     public void loadModel() {
@@ -244,14 +310,93 @@ public class MainActivity extends AppCompatActivity {
                 detLongSize, scoreThreshold);
     }
 
+    /**
+     * PaddleOCR: Predictor
+     * @return
+     */
     public boolean onRunModel() {
+        // Detect by yolo -> paddler ocr
+        Bitmap image = ((BitmapDrawable) ivInputImage.getDrawable()).getBitmap();
+        if (image == null) {
+            tvStatus.setText("STATUS: image is not exists");
+            return false;
+        }
+        List<Integer> modes = getRunModesPaddleOCR();
+        // Log the image and modes
+        Log.d("onRunModel", "Image and modes are ready");
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            List<BoundingBox> bestBoxes = detector.detect(image);
+            if (bestBoxes != null) {
+                Log.d("onRunModel", "Bounding boxes detected: " + bestBoxes.size());
+
+                List<Bitmap> croppedImages = cropBoundingBoxes(image, bestBoxes);
+                Log.d("onRunModel", "Cropped images created: " + croppedImages.size());
+
+                for (Bitmap croppedImage : croppedImages) {
+                    saveImageToStorage(croppedImage);
+                    predictor.setInputImage(croppedImage);
+                    try {
+                        if (predictor.isLoaded()) {
+                            // Run PaddleOCR model
+                            predictor.runModel(modes.get(0), modes.get(1), modes.get(2));
+                            BoundingBox box = bestBoxes.get(croppedImages.indexOf(croppedImage));
+                            if (box != null && predictor.outputResult() != null) {
+                                box.setValueLabel(predictor.outputResult());
+                            }
+                        } else {
+                            tvStatus.setText("STATUS: predictor not loaded");
+                            Log.e("onRunModel", "Predictor not loaded");
+                            return false;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        tvStatus.setText("STATUS: error running model: " + e.getMessage());
+                        Log.e("onRunModel", "Error running model", e);
+                        return false;
+                    }
+                }
+
+                // Draw bounding boxes
+                OverlayView overlayView = findViewById(R.id.overlayView);
+                overlayView.setResults(bestBoxes);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void saveImageToStorage(Bitmap bitmap) {
+        String fileName = "cropped_image_" + System.currentTimeMillis() + ".png"; // Generate unique file name
+        File storageDir = getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File imageFile = new File(storageDir, fileName);
+
+        try {
+            FileOutputStream fos = new FileOutputStream(imageFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos); // Compress bitmap into PNG format
+            fos.close();
+            Log.d("saveImageToStorage", "Image saved to: " + imageFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("saveImageToStorage", "Error saving image: " + e.getMessage());
+        }
+    }
+
+    private List<Integer> getRunModesPaddleOCR() {
         String run_mode = spRunMode.getSelectedItem().toString();
-        // R (Recognition) C (Classification) D (Detection)
+        List<Integer> results = new ArrayList<>();
+
         int run_det = run_mode.contains("D") ? 1 : 0;
         int run_cls = run_mode.contains("C") ? 1 : 0;
         int run_rec = run_mode.contains("R") ? 1 : 0;
-        return predictor.isLoaded() && predictor.runModel(run_det, run_cls, run_rec);
+
+        results.add(run_det);
+        results.add(run_cls);
+        results.add(run_rec);
+
+        return results;
     }
+
 
     @SuppressLint("SetTextI18n")
     public void onLoadModelSuccess() {
@@ -267,6 +412,9 @@ public class MainActivity extends AppCompatActivity {
         tvStatus.setText("STATUS: load model failed");
     }
 
+    /**
+     * Load UI when detect success
+     */
     @SuppressLint("SetTextI18n")
     public void onRunModelSuccess() {
         tvStatus.setText("STATUS: run model success");
@@ -286,7 +434,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void set_img() {
-        // Load test image from path and run model
         try {
             AssetManager assetManager = getAssets();
             InputStream in = assetManager.open(imagePath);
@@ -458,6 +605,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void btn_reset_img_click(View view) {
         ivInputImage.setImageBitmap(cur_predict_image);
+        OverlayView overlayView = findViewById(R.id.overlayView);
+        overlayView.setResults(null);
+        tvStatus.setText("STATUS: N/A ");
     }
 
     @SuppressLint("SetTextI18n")
@@ -468,16 +618,39 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     public void btn_run_model_click(View view) {
-        Bitmap image = ((BitmapDrawable) ivInputImage.getDrawable()).getBitmap();
-        if (image == null) {
-            tvStatus.setText("STATUS: image is not exists");
-        } else if (!predictor.isLoaded()) {
+        if (!predictor.isLoaded()) {
             tvStatus.setText("STATUS: model is not loaded");
-        } else {
-            tvStatus.setText("STATUS: run model ...... ");
-            predictor.setInputImage(image);
-            runModel();
+            return;
         }
+        runModel();
+    }
+
+    private List<Bitmap> cropBoundingBoxes(Bitmap image, List<BoundingBox> boxes) {
+        List<Bitmap> croppedImages = new ArrayList<>();
+
+        for (BoundingBox box : boxes) {
+            int left = (int) (box.getX1() * image.getWidth());
+            int top = (int) (box.getY1() * image.getHeight());
+            int right = (int) (box.getX2() * image.getWidth());
+            int bottom = (int) (box.getY2() * image.getHeight());
+
+            left = Math.max(0, left);
+            top = Math.max(0, top);
+            right = Math.min(image.getWidth(), right);
+            bottom = Math.min(image.getHeight(), bottom);
+
+            int width = right - left;
+            int height = bottom - top;
+
+            Bitmap croppedImage = Bitmap.createBitmap(image, left, top, width, height);
+
+            int scaledWidth = width;
+            int scaledHeight = height;
+            Bitmap scaledCroppedImage = Bitmap.createScaledBitmap(croppedImage, scaledWidth, scaledHeight, true);
+
+            croppedImages.add(scaledCroppedImage);
+        }
+        return croppedImages;
     }
 
     public void btn_choice_img_click(View view) {
@@ -499,30 +672,5 @@ public class MainActivity extends AppCompatActivity {
         }
         worker.quit();
         super.onDestroy();
-    }
-
-    public int get_run_mode() {
-        String run_mode = spRunMode.getSelectedItem().toString();
-        int mode;
-        switch (run_mode) {
-            case "检测+识别":
-                mode = 2;
-                break;
-            case "识别+分类":
-                mode = 3;
-                break;
-            case "检测":
-                mode = 4;
-                break;
-            case "识别":
-                mode = 5;
-                break;
-            case "分类":
-                mode = 6;
-                break;
-            default:
-                mode = 1;
-        }
-        return mode;
     }
 }

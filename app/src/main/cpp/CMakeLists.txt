@@ -1,65 +1,59 @@
 
 cmake_minimum_required(VERSION 3.22.1)
 
+# Set the ABI for Android
 set(CMAKE_ANDROID_ARCH_ABI "armeabi-v7a;arm64-v8a")
 
+# PaddleLite configuration
 set(PaddleLite_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../PaddleLite")
 include_directories(${PaddleLite_DIR}/cxx/include)
 
+# OpenCV configuration
 set(OpenCV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../OpenCV/sdk/native/jni")
 message(STATUS "opencv dir: ${OpenCV_DIR}")
 find_package(OpenCV REQUIRED)
 message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
 include_directories(${OpenCV_INCLUDE_DIRS})
+
 aux_source_directory(. SOURCES)
+
 set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -ffast-math -Ofast -Os"
+        "${CMAKE_CXX_FLAGS} -ffast-math -Ofast -Os -fexceptions"
 )
+
+## Compiler flags
 set(CMAKE_CXX_FLAGS
         "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden -fdata-sections -ffunction-sections"
 )
 set(CMAKE_SHARED_LINKER_FLAGS
         "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections -Wl,-z,nocopyreloc")
 
+# Create the shared library
 add_library(
-        # Sets the name of the library.
         Native
-        # Sets the library as a shared library.
         SHARED
-        # Provides a relative path to your source file(s).
         ${SOURCES})
 
+# Find log library
 find_library(
-        # Sets the name of the path variable.
         log-lib
-        # Specifies the name of the NDK library that you want CMake to locate.
         log)
 
+# PaddleLite shared library
 add_library(
-        # Sets the name of the library.
         paddle_light_api_shared
-        # Sets the library as a shared library.
         SHARED
-        # Provides a relative path to your source file(s).
         IMPORTED)
 
 set_target_properties(
-        # Specifies the target library.
         paddle_light_api_shared
-        # Specifies the parameter you want to define.
         PROPERTIES
         IMPORTED_LOCATION
         ${PaddleLite_DIR}/cxx/libs/${ANDROID_ABI}/libpaddle_light_api_shared.so
-        # Provides the path to the library you want to import.
 )
 
-
-# Specifies libraries CMake should link to your target library. You can link
-# multiple libraries, such as libraries you define in this build script,
-# prebuilt third-party libraries, or system libraries.
-
+# Link libraries
 target_link_libraries(
-        # Specifies the target library.
         Native
         paddle_light_api_shared
         ${OpenCV_LIBS}

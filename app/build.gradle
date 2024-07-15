@@ -6,6 +6,12 @@ android {
     namespace 'com.yplite.ai'
     compileSdk 34
 
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+
     defaultConfig {
         applicationId "com.yplite.ai"
         minSdk 21
@@ -65,4 +71,17 @@ dependencies {
 
     implementation 'androidx.activity:activity:1.4.0'
     implementation 'androidx.core:core:1.7.0'
+
+    String cameraxVersion = "1.4.0-alpha04";
+    implementation "androidx.camera:camera-camera2:${cameraxVersion}"
+    implementation "androidx.camera:camera-lifecycle:${cameraxVersion}"
+    implementation "androidx.camera:camera-view:${cameraxVersion}"
+
+    implementation 'org.tensorflow:tensorflow-lite:2.16.1'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
+    implementation 'org.tensorflow:tensorflow-lite-gpu-delegate-plugin:0.4.4'
+    implementation 'org.tensorflow:tensorflow-lite-gpu-api:2.16.1'
+    implementation 'org.tensorflow:tensorflow-lite-api:2.16.1'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
+    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1'
 }

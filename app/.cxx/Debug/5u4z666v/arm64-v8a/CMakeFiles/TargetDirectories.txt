@@ -1,3 +1,0 @@
-/Volumes/Workplaces/AI/Projects/YPLite/app/.cxx/Debug/5u4z666v/arm64-v8a/CMakeFiles/Native.dir
-/Volumes/Workplaces/AI/Projects/YPLite/app/.cxx/Debug/5u4z666v/arm64-v8a/CMakeFiles/edit_cache.dir
-/Volumes/Workplaces/AI/Projects/YPLite/app/.cxx/Debug/5u4z666v/arm64-v8a/CMakeFiles/rebuild_cache.dir
